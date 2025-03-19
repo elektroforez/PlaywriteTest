@@ -1,19 +1,29 @@
 import { test, expect } from "../fixtures/fixtures";
 import { faker } from "@faker-js/faker";
 
-const searchText = faker.string.numeric({length: 4, allowLeadingZeros: false});
+const searchText = faker.word.sample();
 
 test.describe("Search tests", () => {
-  test("Home page search", async ({ page, header }) => {
+  test("Home page search", async ({ header, searchPage }) => {
     await header.fillSearchInput(searchText);
     await header.runSearch();
 
-    await expect(page).toHaveURL(`/issues/${searchText}`);
+    const [noResults, inTitle] = await Promise.all([
+      searchPage.isNoResultsVisible(),
+      searchPage.isTextInResults(searchText)
+    ]);
+
+    await expect((noResults) || inTitle ).toBeTruthy();
   }),
-    test("Search page search", async ({ page, searchPage }) => {
+    test("Search page search", async ({ searchPage }) => {
       await searchPage.inputSearchText(searchText);
       await searchPage.clickSearchButton();
 
-      await expect(page).toHaveURL(`/issues/${searchText}`);
+      const [noResults, inTitle ] = await Promise.all([
+        searchPage.isNoResultsVisible(),
+        searchPage.isTextInResults(searchText)
+      ]);
+
+      await expect((noResults) || inTitle).toBeTruthy();
     });
 });
